@@ -1,0 +1,125 @@
+const { expect } = require('@playwright/test');
+
+class FormsPage {
+  constructor(page) {
+    this.page = page;
+    this.frame = page.frameLocator('iframe');
+
+    // Outer page locators
+    this.searchInput = page.locator('div.input-group input');
+    this.formCard = page.locator('div.fs-2.fw-bolder').first();
+
+    // Iframe locators
+    // NOTE: ids contain timestamps (text-1770717231658), so match by prefix instead
+    this.addButton = this.frame.getByRole('button', { name: 'Add' });
+    this.textField = this.frame.locator('input[id^="text-"]');
+    this.numberField = this.frame.locator('input[id^="number-"]');
+    this.multiSelectSearch = this.frame.locator('textarea.select2-search__field');
+    this.multiSelectChoices = this.frame.locator('ul.select2-results__options>li');
+
+    this.singleSelectContainer = this.frame.locator(
+      '[id^="select2-single-select-"][id$="-container"]'
+    );
+    this.dropdownOptions = this.frame.locator('ul.select2-results__options>li');
+    this.dateTimeField = this.frame.locator('input[type="datetime-local"]');
+    this.submitButton = this.frame.locator('#kt_modal_add_customer_submit');
+    this.successOkButton = this.frame.getByText('Ok, got it!');
+
+    // Test data
+    this.texts = ['Mechanical', 'Electrical', 'Testing', 'Dashboard', 'Automation'];
+    this.numbers = ['0.345', '300', '20', '45.6798', '090'];
+  }
+
+  // ---------- helpers ----------
+  _random(arr) {
+    return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  _nowForDateTimeLocal() {
+    const d = new Date();
+    const p = (n) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+  }
+
+  // ---------- actions ----------
+  async searchAndOpenForm(formName) {
+    await this.searchInput.fill(formName);
+    await expect(this.searchInput).toHaveValue(formName);
+    await this.formCard.click();
+  }
+
+  async clickAdd() {
+    await expect(this.addButton).toBeVisible();
+    await this.addButton.click();
+  }
+
+  async fillTextField() {
+    const value = this._random(this.texts);
+    await this.textField.fill(value);
+    await expect(this.textField).toHaveValue(value);
+    return value;
+  }
+
+  async fillNumberField() {
+    const value = this._random(this.numbers);
+    await this.numberField.fill(value);
+    await expect(this.numberField).toHaveValue(value);
+    return value;
+  }
+
+  // Picks `count` random options one at a time (select2 removes selected items from the list)
+async selectMultipleOptions(count = 2) {
+  for (let i = 0; i < count; i++) {
+    await this.multiSelectSearch.click();
+    const total = await this.dropdownOptions.count();
+    console.log(total);
+    await this.dropdownOptions.nth(Math.floor(Math.random() * total)).click();
+     await this.page.keyboard.press('Escape');
+
+
+    // wait until the chip is actually added before picking the next one
+  }
+}
+  async selectSingleOption() {
+   await this.page.keyboard.press('Escape');
+    await this.singleSelectContainer .click();
+    const total = await this.dropdownOptions.count();
+    await this.dropdownOptions.nth(Math.floor(Math.random() * total)).click();
+    await expect(this.singleSelectContainer).not.toBeEmpty();
+  }
+
+  async fillCurrentDateTime() {
+    const value = this._nowForDateTimeLocal();
+    await this.dateTimeField.fill(value);
+    await expect(this.dateTimeField).toHaveValue(value);
+  }
+
+  async submit() {
+    await this.submitButton.click();
+  }
+
+  async confirmSuccess() {
+    await this.successOkButton.click();
+  }
+
+  // ---------- assertions ----------
+  async assertFormOpened() {
+    await expect(this.addButton).toBeVisible();
+  }
+
+  async assertAddFormDisplayed() {
+    await expect(this.textField).toBeVisible();
+    await expect(this.numberField).toBeVisible();
+    await expect(this.submitButton).toBeEnabled();
+  }
+
+  async assertSubmissionSuccess() {
+    await expect(this.successOkButton).toBeVisible();
+  }
+
+  async assertPopupClosed() {
+    await expect(this.successOkButton).toBeHidden();
+  }
+}
+
+module.exports = { FormsPage };

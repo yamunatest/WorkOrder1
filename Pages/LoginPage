@@ -1,0 +1,45 @@
+const { expect } = require('@playwright/test');
+
+class LoginPage {
+  constructor(page) {
+    this.page = page;
+    this.url = 'https://untangled.cloudtesla.com/auth/login';
+    this.expectedTitle =
+      "Untangled Pro, 'Simplify operations, boost efficiency, and achieve service excellence'";
+
+    // Locators
+    this.usernameInput = page.getByRole('textbox', { name: 'Username' });
+    this.passwordInput = page.getByRole('textbox', { name: 'Password' });
+    this.continueButton = page.getByRole('button', { name: 'Continue' });
+  }
+
+  async goto() {
+    await this.page.goto(this.url);
+  }
+
+  async login(username, password) {
+    await this.usernameInput.fill(username);
+    await this.passwordInput.fill(password);
+    await this.continueButton.click();
+  }
+
+  // ---------- Assertions ----------
+  async assertLoginPageLoaded() {
+    console.log('Page title is:', await this.page.title());
+    console.log('Page URL is  :', this.page.url());
+
+    await expect(this.page).toHaveTitle(this.expectedTitle);
+    await expect(this.page).toHaveURL(this.url);
+    await expect(this.usernameInput).toBeVisible();
+    await expect(this.passwordInput).toBeVisible();
+    await expect(this.continueButton).toBeEnabled();
+  }
+
+  async assertLoginSuccessful() {
+    // Leaves the login URL and the login form is gone
+    await expect(this.page).not.toHaveURL(/\/auth\/login/);
+    await expect(this.usernameInput).toBeHidden();
+  }
+}
+
+module.exports = { LoginPage };

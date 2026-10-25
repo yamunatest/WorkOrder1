@@ -1,0 +1,20 @@
+{
+  "name": "js",
+  "version": "1.0.0",
+  "description": "",
+  "main": "first.js",
+  "scripts": {},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "devDependencies": {
+    "@playwright/test": "^1.64.1",
+    "@types/node": "^26.1.0",
+    "@types/nodemailer": "^8.0.1",
+    "allure-playwright": "^3.14.0"
+  },
+  "dependencies": {
+    "nodemailer": "^9.0.5"
+  }
+}
