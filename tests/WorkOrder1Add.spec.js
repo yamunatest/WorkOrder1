@@ -76,6 +76,6 @@ await frame.locator('#kt_modal_add_customer_submit').click()
 await frame.getByText('Ok, got it!').click()
 
 await page.waitForTimeout(3000)
-
+console.log("this is my first project")
   await page.close();
 })
